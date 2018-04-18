@@ -23,24 +23,27 @@ start() ->
 
 		
 read_by()->
-	{_,Content}=file:consult("calls.txt"),
+	{_, Content}=file:consult("calls.txt"),
 	%io:format("~w~n",[Result]),
 	%io:format("~w~n",[Content]).
 	io:fwrite("**Calls to be made**~n"),
-	lists:foreach(fun(X)->{Head,Tail}=X, io:format("~w: ~w~n", [Head, Tail]) end, Content),
+	lists:foreach(
+		fun(Friends)->
+			{Head, Tail} = Friends, 
+			io:format("~w: ~w~n", [Head, Tail]),
+			Pid = spawn(calling, talk, [self(), Head]),
+			register(Head, Pid)
+		end, 
+		Content),
 	io:fwrite("~n"),
 
 	lists:foreach(
-		fun(X)->
-			{Head,Tail}=X, 
-			%io:format("~w: ~w~n", [Head, Tail]) 
+		fun(Friends)->
+			{Head, Tail} = Friends, 
+			Pid = whereis(Head),
 			lists:foreach(
-				fun(Y)->
-					Pid = spawn(calling, caller, []),
-					timer:sleep(rand:uniform(1000)),
-					{_,_,MicroSecs} = erlang:timestamp(),
-					Pid ! {self(), {Head, Y, MicroSecs}},
-					io:fwrite("~s received intro message from ~s [~w]\n", [Y, Head, MicroSecs])
+				fun(To)->					
+					Pid ! {Head, To}
 				end, 
 				Tail)
 		end, 
@@ -50,8 +53,14 @@ read_by()->
 
 get_feedback() ->
 	receive
-		{From, To, MicroSecs} -> 
-			io:fwrite("~s received reply message from ~s [~w]\n", [From, To, MicroSecs]),
+		{sent, From, To, MicroSecs} -> 
+			io:fwrite("~s received intro message from ~s [~w]~n", [To, From, MicroSecs]),
+			get_feedback();
+		{received, From, To, MicroSecs} -> 
+			io:fwrite("~s received reply message from ~s [~w]~n", [From, To, MicroSecs]),
+			get_feedback();
+		{ended, Sender} -> 
+			io:fwrite("~nProcess ~s has received no calls for 1 second, ending...~n", [Sender]),
 			get_feedback()
-	after 2000 -> true
+	after 1500 -> io:fwrite("~nMaster has received no replies for 1.5 seconds, ending...~n")
 	end.

@@ -7,7 +7,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([caller/0]).
+-export([talk/2]).
 
 
 
@@ -15,14 +15,18 @@
 %% Internal functions
 %% ====================================================================
 
-caller() ->
+talk(Master, Sender) ->
 	receive 
-		{Sender, {From, To, MicroSecs}} ->
+		{From, To} -> % master is telling me that "From" can talk with "To" now, so I will send a message to "To"
+			{_, _, MicroSecs} = erlang:timestamp(),
 			timer:sleep(rand:uniform(1000)),
-			Sender ! {From, To, MicroSecs},
-			caller()
-	after 2000 -> true
+			Friend = whereis(To), % find my friend
+			Friend ! {From, To, "message", MicroSecs}, % send message to my friend
+			Master ! {sent, From, To, MicroSecs}, % tell master the action of "sending"
+			talk(Master, Sender); % wait further messages
+		{From, To, Message, MicroSecs} -> % I recevied a message from "From"
+			timer:sleep(rand:uniform(1000)),
+			Master ! {received, From, To, MicroSecs}, % tell master the action of "receiving"
+			talk(Master, Sender)
+	after 1000 -> Master ! {ended, Sender} % tell master the action of "ending"
 	end.
-
-
-
