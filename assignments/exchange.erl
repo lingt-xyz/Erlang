@@ -58,9 +58,6 @@ get_feedback() ->
 			get_feedback();
 		{received, From, To, MicroSecs} -> 
 			io:fwrite("~s received reply message from ~s [~w]~n", [From, To, MicroSecs]),
-			get_feedback();
-		{ended, Sender} -> 
-			io:fwrite("~nProcess ~s has received no calls for 1 second, ending...~n", [Sender]),
 			get_feedback()
-	after 1500 -> io:fwrite("~nMaster has received no replies for 1.5 seconds, ending...~n")
+	after 1500 -> io:fwrite("~nMaster has received no replies for 1.5 seconds, ending...~n~n")
 	end.

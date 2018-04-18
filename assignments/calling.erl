@@ -28,5 +28,5 @@ talk(Master, Sender) ->
 			timer:sleep(rand:uniform(1000)),
 			Master ! {received, From, To, MicroSecs}, % tell master the action of "receiving"
 			talk(Master, Sender)
-	after 1000 -> Master ! {ended, Sender} % tell master the action of "ending"
+	after 1000 -> io:fwrite("~nProcess ~s has received no calls for 1 second, ending...~n~n", [Sender])
 	end.
