@@ -1,0 +1,31 @@
+%% @author jason
+%% @doc @todo Add description to exchange.
+
+
+-module(exchange).
+
+%% ====================================================================
+%% API functions
+%% ====================================================================
+-import(string,[len/1, concat/2, chr/2,substr/3,str/2,to_lower/1,to_upper/1]).
+-export([start/0]).
+
+
+
+%% ====================================================================
+%% Internal functions
+%% ====================================================================
+
+start() ->
+	read_by().
+
+
+
+		
+read_by()->
+	{Result,Content}=file:consult("calls.txt"),
+	io:format("~w~n",[Result]),
+	io:format("~w~n",[Content]).
+
+
+
