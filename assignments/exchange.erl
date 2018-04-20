@@ -24,12 +24,12 @@ start() ->
 		
 read_by()->
 	{_, Content}=file:consult("calls.txt"),
-	%io:format("~w~n",[Result]),
-	%io:format("~w~n",[Content]).
-	io:fwrite("**Calls to be made**~n"),
+	io:fwrite("** Calls to be made **~n"),
+
+	% register all children process
 	lists:foreach(
 		fun(Friends)->
-			{Head, Tail} = Friends, 
+			{Head, Tail} = Friends, % get content from each line
 			io:format("~w: ~w~n", [Head, Tail]),
 			Pid = spawn(calling, talk, [self(), Head]),
 			register(Head, Pid)
@@ -37,6 +37,7 @@ read_by()->
 		Content),
 	io:fwrite("~n"),
 
+	% send messages between children
 	lists:foreach(
 		fun(Friends)->
 			{Head, Tail} = Friends, 
